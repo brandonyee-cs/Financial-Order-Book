@@ -1,160 +1,98 @@
 # Order Book System
 
-A high-performance order book implementation with FIX protocol support, designed for electronic trading systems. Provides core matching engine functionality with real-time market data dissemination.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A high-performance trading system with FIX protocol support and configurable runtime parameters.
 
 ## Features
 
-- **Order Matching Engine**
-  - Limit/Market orders
-  - Price-time priority matching
-  - Order cancellation/modification
-  - Best Bid/Offer (BBO) tracking
-- **FIX Protocol 4.4 Support**
-  - New Order Single (D) messages
-  - Execution Reports (8)
-  - TCP-based order entry
-- **Market Data Feed**
-  - Real-time updates
-  - Best bid/ask tracking
-  - Depth-of-book information
-- **Risk Management**
-  - Order validation
-  - Position limits
-  - Fat-finger prevention
-- **Production-Ready Infrastructure**
-  - Async networking (Boost.Asio)
-  - Comprehensive logging
-  - Configurable parameters
+- **Configurable Operation** via INI-style config file
+- FIX 4.4 Protocol Support
+- Real-time Market Data Feed
+- Risk Management Controls
+- Async Network Layer
 
-## Installation
+## Configuration
 
-### Prerequisites
-- C++17 compiler
-- CMake 3.15+
-- Boost 1.70+
+Edit `config/orderbook.cfg`:
 
-### Build Instructions
-```bash
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j8
+```ini
+[orderbook]
+symbol = BTC/USD       # Trading instrument pair
+max_orders = 1000000   # Maximum active orders
+
+[network]
+port = 5000            # FIX protocol listening port
+max_connections = 1000 # Maximum concurrent clients
+
+[risk]
+max_order_size = 10000 # Maximum quantity per order
+max_position = 100000  # Maximum net position allowed
+max_price = 1000000.0  # Maximum acceptable price
+
+[logging]
+level = info           # Log verbosity (debug|info|warn|error)
+file = orderbook.log   # Log file path
 ```
 
-## Usage
-
-### Start Server
-```bash
-./OrderBook
-```
-
-### Send FIX Order (Example)
-```bash
-echo -e "8=FIX.4.4\x0111=123\x0155=BTC/USD\x0154=1\x0140=2\x0144=50000\x0138=100\x0135=D\x01" | nc localhost 5000
-```
-
-### Expected Output
-```
-[Market Update] BID: 50000.00 (100) | ASK: 50100.00 (50)
-[Execution] Order 123: Filled 100 @ 50000.00
-```
+**To Modify Configuration**:
+1. Edit `config/orderbook.cfg`
+2. Restart the application
+3. Changes take effect immediately
 
 ## File Architecture
 
 ```
 orderbook/
 ├── CMakeLists.txt
+├── config/
+│   └── orderbook.cfg       # Runtime configuration
 ├── include/
 │   └── orderbook/
-│       ├── Core/               # Order book logic
-│       │   ├── Order.hpp
-│       │   ├── OrderBook.hpp
-│       │   └── Types.hpp
-│       ├── Network/            # FIX protocol implementation
-│       │   ├── FixParser.hpp
-│       │   ├── FixSession.hpp
-│       │   └── FixConstants.hpp
-│       ├── MarketData/         # Market data distribution
-│       │   └── MarketDataFeed.hpp
-│       ├── Risk/               # Risk controls
-│       │   └── RiskManager.hpp
-│       └── Utilities/          # Support components
-│           └── Logger.hpp
+│       ├── Core/           # Matching engine core
+│       ├── Network/        # FIX protocol implementation
+│       ├── MarketData/     # Real-time data distribution
+│       ├── Risk/           # Risk controls
+│       └── Utilities/      # Support components
 ├── src/
-│   ├── Core/                   # Core implementation
-│   │   ├── Order.cpp
-│   │   └── OrderBook.cpp
-│   ├── Network/                # Network layer
-│   │   ├── FixParser.cpp
-│   │   └── FixSession.cpp
-│   ├── MarketData/             # Market data impl
-│   │   └── MarketDataFeed.cpp
-│   ├── Risk/                   # Risk management
-│   │   └── RiskManager.cpp
-│   ├── Utilities/              # Utilities
-│   │   └── Logger.cpp
-│   └── main.cpp                # Entry point
+│   ├── Core/               # Business logic
+│   ├── Network/            # Protocol handling
+│   ├── MarketData/         # Data publishing
+│   ├── Risk/               # Risk checks
+│   ├── Utilities/          # Infrastructure
+│   └── main.cpp            # Entry point
 └── third_party/
-    └── fix/                    # FIX specifications
-        └── FIX44.xml
+    └── fix/                # Protocol specifications
 ```
 
-## Key Components
+## Build & Run
 
-1. **Order Book Core**
-   - Implements price-time priority matching
-   - Handles order lifecycle management
-   - Maintains bid/ask ladders
+```bash
+# Clone and build
+git clone https://github.com/yourrepo/orderbook
+cd orderbook
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
 
-2. **FIX Protocol Layer**
-   - TCP-based order entry
-   - Async message processing
-   - Session management
+# Run with default config
+./OrderBook ../config/orderbook.cfg
 
-3. **Market Data System**
-   - Real-time updates via callbacks
-   - BBO tracking
-   - Volume-at-price information
-
-4. **Risk Management**
-   - Order validation checks
-   - Position monitoring
-   - Circuit breakers
-
-## Configuration
-
-Edit `config/orderbook.cfg`:
-```ini
-[network]
-port = 5000
-max_connections = 100
-
-[risk]
-max_order_size = 10000
-position_limit = 100000
+# Run with custom config
+./OrderBook /path/to/custom.cfg
 ```
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) for details
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature`)
-3. Commit changes (`git commit -am 'Add feature'`)
-4. Push branch (`git push origin feature`)
-5. Open Pull Request
-
-## Acknowledgements
-
-- Boost.Asio for networking
-- FIX Protocol Limited for specifications
-- C++ Standard Template Library
+MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-This implementation provides a foundation for building exchange-grade trading systems. For production use, consider adding:
-- Order persistence
-- Performance monitoring
-- Binary protocols (SBE/FAST)
-- Colocation optimizations
+This implementation provides a complete configuration system with:
+1. INI-file parsing
+2. Type-safe accessors
+3. Default value handling
+4. Runtime reconfiguration capability
+5. Clear documentation
+
+The system will automatically load configuration at startup and use it for all operational parameters.
