@@ -19,3 +19,4 @@ Order FixParser::parseNewOrderSingle(const std::string& fixMsg) {
         ""
     );
 }
+}
