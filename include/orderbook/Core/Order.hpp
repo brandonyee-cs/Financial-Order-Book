@@ -4,7 +4,8 @@
 #include <cstdint>
 
 namespace orderbook {
-    
+
+// Use strong types to avoid parameter confusion
 struct OrderId {
     uint64_t value;
     
@@ -39,6 +40,7 @@ struct Order {
           timestamp(std::chrono::system_clock::now()) {}
 };
 
+// Custom hash function for OrderId to use in unordered_map
 struct OrderIdHash {
     std::size_t operator()(const OrderId& id) const {
         return std::hash<uint64_t>{}(id.value);

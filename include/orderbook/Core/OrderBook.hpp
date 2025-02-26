@@ -1,84 +1,63 @@
 #pragma once
-#include "Order.hpp"
-#include "../MarketData/MarketDataFeed.hpp"
-#include "../Risk/RiskManager.hpp"
 #include <vector>
-#include <list>
 #include <unordered_map>
+#include <list>
 #include <optional>
-#include <algorithm>
+#include <functional>
+#include <cstdint>
 
 namespace orderbook {
 
-template <typename PriceType = double, typename QuantityType = uint64_t>
+template <typename T>
+constexpr T SideMultiplier = T(1);  // Compile-time constant
+
+enum class Side { Buy, Sell };
+
+struct Order {
+    uint64_t id;
+    Side side;
+    uint64_t quantity;
+    double price;
+    Order* prev = nullptr;
+    Order* next = nullptr;
+};
+
+struct Limit {
+    double price;
+    uint64_t total_quantity;
+    Order* head = nullptr;
+    Order* tail = nullptr;
+    Limit* prev_limit = nullptr;
+    Limit* next_limit = nullptr;
+};
+
 class OrderBook {
-public:
-    explicit OrderBook(const std::string& symbol);
-    
-    // Order management
-    void addOrder(const Order& order);
-    void cancelOrder(uint64_t orderId);
-    bool modifyOrder(uint64_t orderId, PriceType newPrice, QuantityType newQuantity);
-    
-    // Book status queries
-    std::optional<PriceType> getBestBid() const;
-    std::optional<PriceType> getBestAsk() const;
-    PriceType getSpread() const;
-    
-    // Access to related components
-    MarketDataFeed& getMarketDataFeed() { return marketData_; }
-    RiskManager& getRiskManager() { return riskManager_; }
-
 private:
-    struct PriceLevel {
-        std::list<Order> orders;
-        QuantityType totalQuantity = 0;
-    };
+    std::vector<Limit> bids_;
+    std::vector<Limit> asks_;
+    std::unordered_map<double, Limit*> bid_price_map_;
+    std::unordered_map<double, Limit*> ask_price_map_;
+    std::unordered_map<uint64_t, std::pair<Order*, Limit*>> order_map_;
+    
+    template <Side side>
+    void maintainSorted(std::vector<Limit>& vec);
+    
+    void addToLimit(Limit* limit, Order* order);
+    void removeFromLimit(Limit* limit, Order* order);
+    Limit* findOrCreateLimit(double price, Side side);
+    void cleanupEmptyLimits();
 
-    std::string symbol_;
+public:
+    OrderBook();
+    void addOrder(uint64_t id, Side side, double price, uint64_t quantity);
+    void cancelOrder(uint64_t order_id);
+    bool modifyOrder(uint64_t order_id, double new_price, uint64_t new_quantity);
     
-    // Vector of price levels, best price at the end for O(1) access
-    std::vector<PriceLevel> bids_;
-    std::vector<PriceLevel> asks_;
+    std::optional<double> bestBid() const;
+    std::optional<double> bestAsk() const;
     
-    // Hash maps for O(1) lookup of price level index in vectors
-    std::unordered_map<PriceType, std::size_t> bidPriceMap_;
-    std::unordered_map<PriceType, std::size_t> askPriceMap_;
-    
-    // Map order ID to its location for O(1) lookup
-    struct OrderLocation {
-        bool isBid;
-        PriceType price;
-        typename std::list<Order>::iterator orderIt;
-    };
-    std::unordered_map<uint64_t, OrderLocation> orderMap_;
-    
-    MarketDataFeed marketData_;
-    RiskManager riskManager_;
-
-    void processMarketOrder(Order& order);
-    void processLimitOrder(Order& order);
-    void matchOrders(Order& order);
-    
-    void addToBook(Order& order);
-    
-    std::size_t findOrCreatePriceLevel(std::vector<PriceLevel>& levels, 
-                                      std::unordered_map<PriceType, std::size_t>& priceMap, 
-                                      PriceType price);
-                                      
-    void cleanupPriceLevels(std::vector<PriceLevel>& levels, 
-                           std::unordered_map<PriceType, std::size_t>& priceMap,
-                           PriceType price);
-    
-    void publishMarketDataUpdate();
-    
-    static constexpr bool compareBidPrices(const PriceLevel& a, const PriceLevel& b) {
-        return a.price > b.price;
-    }
-    
-    static constexpr bool compareAskPrices(const PriceLevel& a, const PriceLevel& b) {
-        return a.price < b.price;
-    }
+    static constexpr size_t InitialCapacity = 1024;
+    static constexpr double MinPriceIncrement = 0.01;
 };
 
 }
