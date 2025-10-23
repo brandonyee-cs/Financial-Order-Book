@@ -146,19 +146,5 @@ else
 fi
 
 echo -e "${WHITE}║                                                                              ║${NC}"
-echo -e "${GREEN}║ 🚀 ULTRA HIGH-PERFORMANCE ORDERBOOK - PORTFOLIO DEMO COMPLETE              ║${NC}"
+echo -e "${GREEN}║ 🚀 ULTRA HIGH-PERFORMANCE ORDERBOOK - DEMO COMPLETE              ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════════════╝${NC}"
-
-echo ""
-echo -e "${YELLOW}Key Achievements Demonstrated:${NC}"
-echo -e "${WHITE}• Processed 1,000 orders with 85% match rate${NC}"
-echo -e "${WHITE}• Ultra-high throughput exceeding enterprise requirements${NC}"
-echo -e "${WHITE}• Sub-20μs average latency for all operations${NC}"
-echo -e "${WHITE}• Real-time order matching and trade execution${NC}"
-echo -e "${WHITE}• Professional trading system performance metrics${NC}"
-echo -e "${WHITE}• Zero-delay processing demonstrating maximum system capacity${NC}"
-
-echo ""
-echo -e "${YELLOW}Portfolio Impact:${NC}"
-echo -e "${WHITE}This demonstrates advanced high-frequency trading system capabilities${NC}"
-echo -e "${WHITE}suitable for institutional trading environments and financial markets.${NC}"
